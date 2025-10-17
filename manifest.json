@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Download Blocker",
+  "version": "1.0",
+  "description": "Bloque tous les téléchargements avec un système on/off",
+  "permissions": [
+    "downloads",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
