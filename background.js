@@ -8,13 +8,35 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.downloads.onCreated.addListener((downloadItem) => {
   chrome.storage.local.get(['isEnabled'], (result) => {
     if (result.isEnabled) {
-      // Annule immédiatement le téléchargement sans le supprimer de l'historique
-      chrome.downloads.cancel(downloadItem.id, () => {
-        console.log(`Téléchargement annulé: ${downloadItem.filename}`);
-        // Ne pas appeler erase() pour garder le téléchargement dans la liste
-      });
+      // Temporisation pour s'assurer que le téléchargement est bien initialisé
+      setTimeout(() => {
+        chrome.downloads.cancel(downloadItem.id, () => {
+          if (chrome.runtime.lastError) {
+            console.log(`Erreur lors de l'annulation: ${chrome.runtime.lastError.message}`);
+          } else {
+            console.log(`Téléchargement annulé: ${downloadItem.filename}`);
+          }
+        });
+      }, 10); // Délai de 10ms
     }
   });
+});
+
+// Écouteur supplémentaire pour capturer les téléchargements qui démarrent rapidement
+chrome.downloads.onChanged.addListener((delta) => {
+  if (delta.state && delta.state.current === 'in_progress') {
+    chrome.storage.local.get(['isEnabled'], (result) => {
+      if (result.isEnabled) {
+        chrome.downloads.cancel(delta.id, () => {
+          if (chrome.runtime.lastError) {
+            console.log(`Erreur lors de l'annulation (onChanged): ${chrome.runtime.lastError.message}`);
+          } else {
+            console.log(`Téléchargement annulé (onChanged): ${delta.id}`);
+          }
+        });
+      }
+    });
+  }
 });
 
 // Met à jour le badge
